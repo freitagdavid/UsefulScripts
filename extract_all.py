@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 from multiprocessing import Process
 from multiprocessing import cpu_count
+from collections import deque
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', '--recursive', action='store_true',
                     help="Recurses through subfolders")
@@ -27,7 +28,7 @@ def is_szip(file):
 
 
 def get_files():
-    output = []
+    output = deque()
     if args.recursive:
         for dir_name, subdir_list, file_list in os.walk(args.directory):
             for fname in file_list:
@@ -78,7 +79,7 @@ if __name__ == '__main__':
         processes = []
         for i in range(process_count):
             processes.append(
-                Process(target=process_files, args=(files.pop(),)))
+                Process(target=process_files, args=(files.popleft(),)))
         for p in processes:
             p.start()
         for p in processes:
