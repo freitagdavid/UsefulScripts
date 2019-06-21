@@ -2,6 +2,8 @@ import os
 import argparse
 import subprocess
 from pathlib import Path
+from multiprocessing import Process
+from multiprocessing import cpu_count
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', '--recursive', action='store_true',
                     help="Recurses through subfolders")
@@ -56,24 +58,28 @@ def extract_file(file):
 def delete_file(file):
     os.remove(file)
     print(f"Deleted: {file.name}")
-    pass
 
 
-def process_files(files):
-    for file in files:
-        status = extract_file(file)
-        print(f"Extracted: {file.name}")
-        if args.delete:
-            if status == 0:
-                delete_file(file)
-            else:
-                print(
-                    "There was a problem with extraction this file will not be deleted")
+def process_files(file):
+    status = extract_file(file)
+    print(f"Extracted: {file.name}")
+    if args.delete:
+        if status == 0:
+            delete_file(file)
+        else:
+            print(
+                "There was a problem with extraction this file will not be deleted")
 
 
-def main():
+if __name__ == '__main__':
     files = get_files()
-    process_files(files)
-
-
-main()
+    process_count = cpu_count() // 2
+    while files:
+        processes = []
+        for i in range(process_count):
+            processes.append(
+                Process(target=process_files, args=(files.pop(),)))
+        for p in processes:
+            p.start()
+        for p in processes:
+            p.join()
