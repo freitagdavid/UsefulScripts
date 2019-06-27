@@ -12,8 +12,12 @@ parser.add_argument('-s', '--seven-zip', action='store_true',
                     help="Process seven zip files")
 parser.add_argument('-z', '--zip', action='store_true',
                     help="Process zip files")
+parser.add_argument('-g', '--g-zip', action='store_true',
+                    help="Process gzip files")
 parser.add_argument('-d', '--delete', action='store_true',
                     help="Delete after extraction")
+parser.add_argument('-m', '--multi-threading',
+                    help='Enable or disable multi-threading', default="1")
 parser.add_argument('-di', '--directory',
                     default="./", help="Directory to process")
 args = parser.parse_args()
@@ -27,6 +31,10 @@ def is_szip(file):
     return file.suffix == ".7z"
 
 
+def is_gzip(file):
+    return file.suffix == ".gz"
+
+
 def get_files():
     output = deque()
     if args.recursive:
@@ -37,12 +45,16 @@ def get_files():
                     output.append(file)
                 if is_szip(file):
                     output.append(file)
+                if is_gzip(file):
+                    output.append(file)
     else:
         for fname in os.listdir(args.directory):
             file = Path(args.directory) / fname
             if is_zip(file):
                 output.append(file)
             if is_szip(file):
+                output.append(file)
+            if is_gzip(file):
                 output.append(file)
 
     return output
@@ -74,7 +86,7 @@ def process_files(file):
 
 if __name__ == '__main__':
     files = get_files()
-    process_count = cpu_count() // 2
+    process_count = int(args.multi_threading)
     while files:
         processes = []
         for i in range(process_count):
