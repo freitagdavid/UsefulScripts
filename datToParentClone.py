@@ -58,8 +58,9 @@ class Dat:
                                 game.attrib["cloneof"] = games[0].attrib["name"]
         with open(outTxt, "w") as file:
             file.write(self.dedup)
+        xmlString = ET.tostring(tree, encoding='unicode', method='xml')
         with open(outDat, "w") as file:
-            file.write(prettifyXML(tree))
+            file.write(xmlString)
 
 
 def prettifyXML(elem):
